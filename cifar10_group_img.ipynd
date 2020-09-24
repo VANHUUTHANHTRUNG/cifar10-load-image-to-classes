@@ -1,0 +1,135 @@
+{
+ "cells": [
+  {
+   "cell_type": "code",
+   "execution_count": 31,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Populating the interactive namespace from numpy and matplotlib\n"
+     ]
+    }
+   ],
+   "source": [
+    "%pylab inline\n",
+    "import pprint\n",
+    "import numba\n",
+    "import pickle\n",
+    "import numpy as np\n",
+    "import matplotlib.pyplot as plt\n",
+    "from random import random\n",
+    "\n",
+    "def unpickle(file):\n",
+    "    with open(file, 'rb') as f:\n",
+    "        dict = pickle.load(f, encoding=\"latin1\")\n",
+    "    return dict\n",
+    "\n",
+    "datapath = 'C:/Users/vanhut1/AppData/cifar-10-python.tar/cifar-10-batches-py/'\n",
+    "# datapath = '/home/trungvan/worktemp/cifar-10-python/cifar-10-batches-py/'  "
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 293,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "\n",
+    "def unpickle(file):\n",
+    "    with open(file, 'rb') as f:\n",
+    "        dict = pickle.load(f, encoding=\"latin1\")\n",
+    "    return dict\n",
+    "\n",
+    "def cifar10_load_trdata(path, batch_num):\n",
+    "    tr_X = np.empty([10000*batch_num,32,32,3],dtype=np.uint8)\n",
+    "    tr_Y = np.empty([10000*batch_num],dtype=np.uint8)\n",
+    "    for i in range(batch_num):\n",
+    "        trdict = unpickle(path + 'data_batch_' + str(i+1))\n",
+    "        temp_tr_X = trdict[\"data\"]\n",
+    "        temp_tr_Y = trdict[\"labels\"]\n",
+    "        tr_X[i*temp_tr_X.shape[0]:(i+1)*temp_tr_X.shape[0],:] = temp_tr_X.reshape(temp_tr_X.shape[0],3,32,32).transpose(0,2,3,1).astype(np.uint8)\n",
+    "        tr_Y[i*len(temp_tr_Y):(i+1)*len(temp_tr_Y)] = np.array(temp_tr_Y)\n",
+    "    return tr_X,tr_Y\n",
+    "\n",
+    "def cifar10_load_testdata(path):\n",
+    "    datadict = unpickle(path + 'test_batch')\n",
+    "\n",
+    "    test_X = datadict[\"data\"]\n",
+    "    test_Y = datadict[\"labels\"]\n",
+    "\n",
+    "    test_X = test_X.reshape(10000, 3, 32, 32).transpose(0,2,3,1).astype(np.uint8)\n",
+    "    test_Y = np.array(test_Y)\n",
+    "    return test_X,test_Y\n",
+    "\n",
+    "def classify_train_data(X,Y):\n",
+    "    group_data = np.array(sorted(zip(X,Y), key = lambda t : t[1]))\n",
+    "    class_freq = [ sum(group_data[:,1] == i) for i in range(10)]\n",
+    "    print(\"Number of image in each class \\n\",class_freq)\n",
+    "    ind_sum = 0\n",
+    "    img_by_class = []\n",
+    "    for i in range(10):\n",
+    "        temp_np_arr = np.array(group_data[ind_sum:ind_sum+class_freq[i],0])\n",
+    "        img_by_class.append(temp_np_arr)\n",
+    "        ind_sum += class_freq[i]\n",
+    "#     print(img_by_class[2][2041])\n",
+    "#     print(img_by_class[2][2041].shape)\n",
+    "    return img_by_class\n",
+    "        "
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 299,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "<ipython-input-293-dc3c054322f0>:28: VisibleDeprecationWarning: Creating an ndarray from ragged nested sequences (which is a list-or-tuple of lists-or-tuples-or ndarrays with different lengths or shapes) is deprecated. If you meant to do this, you must specify 'dtype=object' when creating the ndarray\n",
+      "  group_data = np.array(sorted(zip(X,Y), key = lambda t : t[1]))\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Number of image in each class \n",
+      " [1989, 1981, 2042, 2011, 2009, 1925, 2038, 2027, 2012, 1966]\n",
+      "<class 'list'>\n"
+     ]
+    }
+   ],
+   "source": [
+    "labeldict = unpickle(datapath + 'batches.meta')\n",
+    "label_names = labeldict[\"label_names\"]\n",
+    "tr_X,tr_Y = cifar10_load_trdata(datapath,2)\n",
+    "img_in_class = classify_train_data(tr_X,tr_Y)"
+   ]
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.8.5"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 4
+}
